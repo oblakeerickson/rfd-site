@@ -53,6 +53,19 @@
   filter: invert(1) hue-rotate(180deg);
 }
 
+/* Fallback for system preference when no class is set (before JS runs) */
+@media (prefers-color-scheme: light) {
+  html:not(.dark-mode):not(.light-mode) {
+    filter: invert(1) hue-rotate(180deg);
+  }
+
+  html:not(.dark-mode):not(.light-mode) img,
+  html:not(.dark-mode):not(.light-mode) picture,
+  html:not(.dark-mode):not(.light-mode) video {
+    filter: invert(1) hue-rotate(180deg);
+  }
+}
+
 html,
 body {
   -webkit-font-smoothing: antialiased;

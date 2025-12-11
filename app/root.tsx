@@ -42,8 +42,11 @@ export const meta: MetaFunction = () => {
 
 export const links: LinksFunction = () => [{ rel: 'stylesheet', href: styles }]
 
+import type { Theme } from './routes/user.toggle-theme'
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const theme = (await themeCookie.parse(request.headers.get('Cookie'))) ?? 'dark-mode'
+  // Theme is 'light', 'dark', or null (follow system)
+  const theme: Theme = (await themeCookie.parse(request.headers.get('Cookie'))) ?? null
   const inlineComments =
     (await inlineCommentsCookie.parse(request.headers.get('Cookie'))) ?? true
 
@@ -110,29 +113,65 @@ export function ErrorBoundary() {
 }
 const queryClient = new QueryClient()
 
-const Layout = ({ children, theme }: { children: React.ReactNode; theme?: string }) => (
-  <html lang="en" className={theme}>
-    <head>
-      <meta charSet="utf-8" />
-      <meta name="viewport" content="width=device-width,initial-scale=1" />
-      <Meta />
-      <Links />
-      <link rel="icon" href="/favicon.svg" />
-      <link rel="icon" type="image/png" href="/favicon.png" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      {/* Use plausible analytics only on Vercel */}
-      {process.env.NODE_ENV === 'production' && (
-        <script defer data-domain="rfd.shared.oxide.computer" src="/js/viewscript.js" />
-      )}
-      <meta name="color-scheme" content="dark" />
-    </head>
-    <body className="mb-32">
-      {children}
-      <ScrollRestoration />
-      <Scripts />
-    </body>
-  </html>
-)
+// Script to detect system theme preference and apply the correct theme class
+// This runs before React hydration to prevent flash of wrong theme
+// If theme is null, we follow the system preference
+const themeScript = (theme: Theme) => `
+(function() {
+  var savedTheme = ${theme === null ? 'null' : `'${theme}'`};
+  var resolvedTheme;
+  if (savedTheme === null) {
+    // No saved preference, follow system
+    resolvedTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light-mode' : 'dark-mode';
+  } else {
+    resolvedTheme = savedTheme === 'light' ? 'light-mode' : 'dark-mode';
+  }
+  document.documentElement.className = resolvedTheme;
+
+  // Update color-scheme meta tag
+  var meta = document.querySelector('meta[name="color-scheme"]');
+  if (meta) meta.content = resolvedTheme === 'light-mode' ? 'light' : 'dark';
+})();
+`
+
+const Layout = ({
+  children,
+  theme = null,
+}: {
+  children: React.ReactNode
+  theme?: Theme
+}) => {
+  const initialClass =
+    theme === 'light' ? 'light-mode' : theme === 'dark' ? 'dark-mode' : '' // Empty for system
+
+  const colorScheme = theme === 'light' ? 'light' : theme === 'dark' ? 'dark' : 'dark light'
+
+  return (
+    <html lang="en" className={initialClass} suppressHydrationWarning>
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <Meta />
+        <Links />
+        <link rel="icon" href="/favicon.svg" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* Use plausible analytics only on Vercel */}
+        {process.env.NODE_ENV === 'production' && (
+          <script defer data-domain="rfd.shared.oxide.computer" src="/js/viewscript.js" />
+        )}
+        <meta name="color-scheme" content={colorScheme} />
+        {/* Inline script to set theme before paint to avoid flash */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript(theme) }} />
+      </head>
+      <body className="mb-32">
+        {children}
+        <ScrollRestoration />
+        <Scripts />
+      </body>
+    </html>
+  )
+}
 
 export default function App() {
   const { theme, localMode } = useLoaderData<typeof loader>()
