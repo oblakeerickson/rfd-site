@@ -188,6 +188,35 @@ test.describe('Theme Toggle', () => {
 
     await expect(html).not.toHaveClass(initialTheme || '')
   })
+
+  test('Theme persists after page reload', async ({ page }) => {
+    await page.goto('/')
+
+    const html = page.locator('html')
+    const themeToggle = page.getByRole('button', { name: 'Toggle theme' })
+
+    await themeToggle.click()
+    const newTheme = await html.getAttribute('class')
+
+    await page.reload()
+    await expect(html).toHaveClass(newTheme || '')
+  })
+
+  test('Respects system preference when no cookie is set', async ({ page, context }) => {
+    await context.clearCookies()
+
+    await page.emulateMedia({ colorScheme: 'light' })
+    await page.goto('/')
+
+    const html = page.locator('html')
+    await expect(html).toHaveClass('light-mode')
+
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await context.clearCookies()
+    await page.reload()
+
+    await expect(html).toHaveClass('dark-mode')
+  })
 })
 
 test.describe('Search', () => {
