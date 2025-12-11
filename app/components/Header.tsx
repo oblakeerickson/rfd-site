@@ -32,7 +32,10 @@ export default function Header({ currentRfd }: { currentRfd?: RfdItem }) {
   const fetcher = useFetcher()
 
   const toggleTheme = () => {
-    fetcher.submit({}, { method: 'post', action: '/user/toggle-theme' })
+    const systemPreference = window.matchMedia('(prefers-color-scheme: light)').matches
+      ? 'light'
+      : 'dark'
+    fetcher.submit({ systemPreference }, { method: 'post', action: '/user/toggle-theme' })
   }
 
   const toggleInlineComments = () => {
