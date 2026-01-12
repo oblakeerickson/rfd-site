@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened, closed]
 
 env:
-  PREVIEW_HOST: preview.blake.app  # Update this!
+  PREVIEW_HOST: preview.blake.app
   PREVIEW_USER: deploy
   BASE_PORT: 3001
 
@@ -16,7 +16,9 @@ jobs:
     steps:
       - name: Calculate port
         id: port
-        run: echo "port=$(( ${{ env.BASE_PORT }} + (${{ github.event.pull_request.number }} % 100) ))" >> $GITHUB_OUTPUT
+        run:
+          echo "port=$(( ${{ env.BASE_PORT }} + (${{ github.event.pull_request.number }} %
+          100) ))" >> $GITHUB_OUTPUT
 
       - name: Deploy preview
         uses: appleboy/ssh-action@v1.0.3
@@ -25,11 +27,7 @@ jobs:
           username: ${{ env.PREVIEW_USER }}
           key: ${{ secrets.PREVIEW_SSH_KEY }}
           script: |
-            /home/deploy/scripts/start-preview.sh \
-              ${{ github.event.pull_request.number }} \
-              "${{ github.head_ref }}" \
-              ${{ steps.port.outputs.port }}
-
+            /home/deploy/scripts/start-preview.sh ${{ github.event.pull_request.number }} "${{ github.head_ref }}" ${{ steps.port.outputs.port }}
             /home/deploy/scripts/update-caddy.sh
 
       - name: Comment PR with preview URL
@@ -38,23 +36,15 @@ jobs:
           script: |
             const prNumber = context.payload.pull_request.number;
             const previewUrl = `https://pr-${prNumber}.${{ env.PREVIEW_HOST }}`;
-
             const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
             });
-
             const botComment = comments.data.find(c =>
               c.user.type === 'Bot' && c.body.includes('Preview deployment')
             );
-
-            const body = `### Preview deployment
-
-Your preview is ready at: ${previewUrl}
-
-_Updated: ${new Date().toISOString()}_`;
-
+            const body = `### Preview deployment\n\nYour preview is ready at: ${previewUrl}\n\n_Updated: ${new Date().toISOString()}_`;
             if (botComment) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
