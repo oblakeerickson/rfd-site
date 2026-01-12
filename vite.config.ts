@@ -22,5 +22,6 @@ export default defineConfig({
   plugins,
   server: {
     port: 3000,
+    allowedHosts: true, // Allow preview subdomains (e.g., pr-1.preview.blake.app)
   },
 })
