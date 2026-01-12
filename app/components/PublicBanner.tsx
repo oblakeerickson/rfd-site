@@ -44,7 +44,7 @@ export function PublicBanner() {
         </button>
       </div>
 
-      <Modal dialogStore={dialog} title="Oxide Public RFDs">
+      <Modal dialogStore={dialog} title="blake.app Public RFDs">
         <div className="space-y-4">
           <p>
             These are the publicly available{' '}
@@ -55,7 +55,7 @@ export function PublicBanner() {
             >
               RFDs
             </Link>{' '}
-            from <ExternalLink href="https://oxide.computer/">Oxide</ExternalLink>. Those
+            from <ExternalLink href="https://blake.app/">blake.app</ExternalLink>. Those
             with access should{' '}
             <Link className="text-accent-secondary hover:text-accent" to="/login">
               sign in
@@ -67,14 +67,6 @@ export function PublicBanner() {
             established ones. You can read more about the{' '}
             <ExternalLink href="https://oxide.computer/blog/a-tool-for-discussion">
               tooling around discussions
-            </ExternalLink>
-            .
-          </p>
-          <p>
-            If you're interested in the way we work, and would like to see the process from
-            the inside, check out our{' '}
-            <ExternalLink href="https://oxide.computer/careers">
-              open positions
             </ExternalLink>
             .
           </p>
