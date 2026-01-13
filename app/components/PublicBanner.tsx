@@ -55,7 +55,7 @@ export function PublicBanner() {
             >
               RFDs
             </Link>{' '}
-            from <ExternalLink href="https://oxide.computer/">Oxide</ExternalLink>. Those
+            from <ExternalLink href="https://blake.app/">blake.app</ExternalLink>. Those
             with access should{' '}
             <Link className="text-accent-secondary hover:text-accent" to="/login">
               sign in
